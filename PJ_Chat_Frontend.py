@@ -2,7 +2,8 @@ import streamlit as st
 import Processor
 import Chatbot_Google_LLM
 import youtube_processor as yp
-
+import datetime
+import json
 
 # --- UI Setup ---
 
@@ -80,12 +81,19 @@ def front():
                             horizontal=True, key=f"feedback_{len(st.session_state.messages)}")
         
         # Store full message, reply, and feedback
-        st.session_state.messages.append({
+        feedback_data = ({
             "question": user_input,
             "answer": response,
-            "feedback": feedback
+            "feedback": feedback,
+            "timestamp": datetime.datetime.now().isoformat()
         })
+        st.session_state.messages.append(feedback_data)
+        
+        # Append feedback to developer log
+        with open("feedback_log.jsonl", "a", encoding="utf-8") as f:
+            f.write(json.dumps(feedback_data) + "\n")
 
+    # Append
     # --- Reset chat ---
     if st.button("🔄 Reset Chat"):
         if "chat" in st.session_state:
@@ -122,7 +130,7 @@ def input_display():
         vectorstore = None
         
         with col_1:
-            st.button("Messages", on_click=open_popup_1)
+            st.button("📖 Messages", on_click=open_popup_1)
             
             if st.session_state.show_popup_1:
                 menu_option = st.radio(
@@ -146,7 +154,7 @@ def input_display():
                     close_popup_1()
                     
         with col_2:
-            st.button("Series", on_click=open_popup_2)
+            st.button("📚 Series", on_click=open_popup_2)
             
             if st.session_state.show_popup_2:
                 choice = st.selectbox(
