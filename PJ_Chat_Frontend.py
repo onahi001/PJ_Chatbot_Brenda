@@ -72,7 +72,7 @@ def front():
         
         with st.chat_message("Brenda: "):
             st.markdown(f"""<div style='background-color:#F1F0F0; padding:10px; 
-                        border-radius:10px; text-align: right; max-width: 75%; 
+                        border-radius:10px; text-align: right; max-width: 90%; 
                         margin-left: auto;'>{response}</div>""",
                         unsafe_allow_html=True)
         
