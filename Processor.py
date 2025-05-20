@@ -45,5 +45,3 @@ def json_processor_with_time(file_path):
     formatted = "\n".join(formatted_entries) 
     return formatted
 
-json_processor_with_time("data/merged_SOS.json")
-#json_processor("data/merged_SOS.json")

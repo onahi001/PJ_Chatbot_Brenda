@@ -14,11 +14,46 @@ def front():
         st.session_state.show_popup_1 = False
     if "show_popup_2" not in st.session_state:
         st.session_state.show_popup_2 = False
-        
+
+    # --- UI Setup ---
     st.set_page_config(page_title="Brenda Chatbot", layout="wide")
     st.title("💬 PJ Chatbot")
+    
+    # --- Detect system theme ---
+    if "theme" not in st.session_state:
+        if st.get_option("theme.base") == "dark":
+            st.session_state.theme ="dark"
+        else:
+            st.session_state.theme = "light"
+    theme = st.session_state.theme
+       
+    # ---Setting theme colours ---
+    if theme == "dark":
+        user_chat_BG = "background-color:#333333; color:white;"
+        brenda_chat_BG = "background-color:#444444; color:white;"
+    else:
+        user_chat_BG = "background-color:#DCF8C6;"
+        brenda_chat_BG = "background-color:#F1F0F0;"
+    
+    # --- Creating a theme toggle ---
+    dark_mode = st.toggle("🌙 Dark Mode", value=False)
+    if dark_mode:
+        user_chat_BG = "background-color:#333333; color:white;"
+        brenda_chat_BG = "background-color:#444444; color:white;"
+        sub_colour = "#007BFF"
+    else:
+        user_chat_BG = "background-color:#DCF8C6;"
+        brenda_chat_BG = "background-color:#F1F0F0;"
+        sub_colour = "#0F52BA"
+        
+    # --- Thread selection ---
+    #if "threads" not in st.session_state:
+    #    st.session_state.threads = {}
+        
+    #thread_names = list(st.session_state.threads.keys())
+    
     st.subheader("Hey! I am Brenda.")
-    st.markdown('''<h6 style="color:blue;">
+    st.markdown(f'''<h6 style="color:{sub_colour};">
                 An assistant for you on some of pastor jackson messages. 
                 You can ask me questions on selected messages.</h5>''',
                 unsafe_allow_html=True)
@@ -40,30 +75,34 @@ def front():
     if "messages"  in st.session_state:
         for i, msg in enumerate(st.session_state.messages):
             with st.chat_message("User"):
-                st.markdown(f"""<div style='background-color:#DCF8C6; padding:10px; 
+                st.markdown(f"""<div style='{user_chat_BG} padding:10px; 
                         border-radius:10px; text-align: left; max-width: 45%; 
                         margin-right: auto;'>{msg['question']}</div>""",
                         unsafe_allow_html=True)
             with st.chat_message("Brenda"):
-                st.markdown(f"""<div style='background-color:#F1F0F0; padding:10px; 
+                st.markdown(f"""<div style='{brenda_chat_BG} padding:10px; 
                         border-radius:10px; text-align: right; max-width: 75%; 
-                        margin-left: auto;'>{msg['answer']}</div>""",
+                        margin-left: auto; white-space: pre-wrap; position: relative;'>
+                        <button onclick="navigator.clipboard.writeText(this.nextElementSibling.innerText)" 
+                        style="position:absolute; top:5px; right:5px;">📋</button>
+                        <div>{msg['answer']}</div>
+                        </div>""",
                         unsafe_allow_html=True)
                 
         # --- Implementation of a scroll to bottom ---
+        scroll_anchor = "scroll-anchor"
+        st.markdown(f"<div id='{scroll_anchor}'></div>", unsafe_allow_html=True)
         st.markdown("""
             <script>
-                var chatContainer = window.parent.document.querySelector('.main');
-                if (chatContainer){
-                    chatContainer.scrollTo({ top: chatContainer.scrollHeight, behaviour: 'smooth'});
-                }
+                const anchor = window.parent.document.getElementById('{scroll_anchor}');
+                if (anchor) anchor.scrollIntoView({ behavior: 'smooth' });
             </script>)
         """, unsafe_allow_html=True)
     
     # --- Handle new input ---    
     if user_input and "chat" in st.session_state:
         with st.chat_message("User"):
-            st.markdown(f"""<div style='background-color:#DCF8C6; padding:10px; 
+            st.markdown(f"""<div style='{user_chat_BG} padding:10px; 
                         border-radius:10px; text-align: left; max-width: 45%; 
                         margin-right: auto;'>{user_input}</div>""",
                         unsafe_allow_html=True)
@@ -71,9 +110,13 @@ def front():
             response = Chatbot_Google_LLM.BrendaBrain(st.session_state.chat, user_input)
         
         with st.chat_message("Brenda: "):
-            st.markdown(f"""<div style='background-color:#F1F0F0; padding:10px; 
-                        border-radius:10px; text-align: right; max-width: 90%; 
-                        margin-left: auto;'>{response}</div>""",
+            st.markdown(f"""<div style='{brenda_chat_BG} padding:10px; 
+                        border-radius:10px; text-align: right; max-width: 75%; 
+                        margin-left: auto; white-space: pre-wrap; position: relative;'>
+                        <button onclick="navigator.clipboard.writeText(this.nextElementSibling.innerText)" 
+                        style="position:absolute; top:5px; right:5px;">📋</button>
+                        <div>{response}</div>
+                        </div>""",
                         unsafe_allow_html=True)
         
         # --- Feedback ---
@@ -134,23 +177,17 @@ def input_display():
             
             if st.session_state.show_popup_1:
                 menu_option = st.radio(
-                    "Choose a message", ["Relationship Myth", "Demands of Faith", 
-                                         "2025 Outpouring Day 1", "2025 Outpouring Day 2"]
+                    "Choose a message", ["Relationship Myths", "Demands of Faith",
+                                         "Be Sober & Be Vigilant", "Business Beyond Grace",
+                                         "Crossover Service 2024", "I Am, I Can & I Have",
+                                         "Handling Post Traumatic Experiences",
+                                         "The Origin of the Blessing",
+                                         "2025 Outpouring Day One", "2025 Outpouring Day Two"]
                 )
                 
                 if st.button("Submit"):
-                    if menu_option == "Relationship Myth":
-                        message_text = Processor.json_processor_with_time(
-                            "data/Messages/Relationship_Myths.json")
-                    if menu_option == "Demands of Faith":
-                        message_text = Processor.json_processor_with_time(
-                            "data/Messages/Demands_of_Faith.json")
-                    if menu_option == "2025 Outpouring Day 1":
-                        message_text = Processor.json_processor_with_time(
-                            "data/Messages/2025_Outpouring_Day_one.json")
-                    if menu_option == "2025 Outpouring Day 2.json":
-                        message_text = Processor.json_processor_with_time(
-                            "data/Messages/2025_Outpouring_Day_two.json")
+                    message_text = Processor.json_processor_with_time(
+                        f"data/Messages/{menu_option}.json")
                     close_popup_1()
                     
         with col_2:
@@ -158,11 +195,13 @@ def input_display():
             
             if st.session_state.show_popup_2:
                 choice = st.selectbox(
-                    "Choose a Series", ["Parables of Jesus", "SOS"]
+                    "Choose a Series", ["Parables of Jesus", "SOS",
+                                        "Bible Perspective on Marriage",
+                                        "Spiritual Growth", "The Honour Code"
+                                        ]
                 )
                 
-                if st.button("Submit (2)"):
-                    print(choice)
+                if st.button("Submit"):
                     message_text = Processor.json_processor_with_time(
                         f"data/{choice}/merged_{choice}.json"
                     )
